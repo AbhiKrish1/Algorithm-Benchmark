@@ -1,0 +1,36 @@
+# Python virtual environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+
+# Generated datasets and outputs used by the existing project layout
+data/generated/*
+!data/generated/.gitkeep
+output/raw/*
+!output/raw/.gitkeep
+output/graphs/*
+!output/graphs/.gitkeep
+output/profiles/*
+!output/profiles/.gitkeep
+
+# Generated benchmark runs: datasets, binaries, timing data, plots, and reports
+results/run_*/
+
+# GNU profiler output left behind if a run is interrupted
+gmon.out
+
+# LaTeX build files
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
+report/*.pdf
+presentation/*.aux
+presentation/*.log
+presentation/*.nav
+presentation/*.snm
+presentation/*.toc
+presentation/*.pdf
