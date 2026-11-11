@@ -85,23 +85,38 @@ done
 
 python3 "$COLLECTOR" "$run_dir/datasets" "$run_dir/benchmark_data.dat" "${binaries[@]}"
 
-# Profile a larger workload separately from timing so instrumentation does not
-# change the plotted runtime measurements.
-profile_repeats="${ABS_PROFILE_REPEATS:-50}"
-[[ "$profile_repeats" =~ ^[1-9][0-9]*$ ]] || fail "ABS_PROFILE_REPEATS must be a positive integer"
+# Run a longer, separately instrumented profile. Estimate per-algorithm repeats
+# from the measured n=1000 runtime so slow algorithms aren't assigned an
+# unnecessarily huge fixed workload.
+profile_seconds="${ABS_PROFILE_SECONDS:-2}"
+profile_max_repeats="${ABS_PROFILE_MAX_REPEATS:-500000}"
+[[ "$profile_seconds" =~ ^[0-9]+([.][0-9]+)?$ ]] || fail "ABS_PROFILE_SECONDS must be a positive number"
+python3 -c 'import sys; sys.exit(0 if float(sys.argv[1]) > 0 else 1)' "$profile_seconds" || fail "ABS_PROFILE_SECONDS must be greater than zero"
+[[ "$profile_max_repeats" =~ ^[1-9][0-9]*$ ]] || fail "ABS_PROFILE_MAX_REPEATS must be a positive integer"
 profile_dataset="$run_dir/datasets/n_1000.txt"
 [[ -f "$profile_dataset" ]] || fail "profile dataset n_1000.txt was not generated"
-{ printf '1000 %s\n' "$profile_repeats"; tail -n +2 "$profile_dataset"; } > "$run_dir/profile_input.txt"
 for i in 0 1; do
   profile_binary="${profile_binaries[$i]}"
   profile_name="$(basename -- "${selected[$i]}" .c)"
+  profile_repeats="$(python3 - "$run_dir/benchmark_data.dat" "$((i + 2))" "$profile_seconds" "$profile_max_repeats" <<'PY'
+import math
+import sys
+path, column, target, cap = sys.argv[1], int(sys.argv[2]), float(sys.argv[3]), int(sys.argv[4])
+lines = open(path, encoding="ascii").read().splitlines()[1:]
+last = next(row.split() for row in reversed(lines) if row.strip())
+per_call = float(last[column - 1])
+repeats = math.ceil(target / max(per_call, 1e-12))
+print(min(cap, max(1, repeats)))
+PY
+)"
+  printf 'Profiling %s with %s calls (target about %s CPU seconds)\n' "${labels[$i]}" "$profile_repeats" "$profile_seconds"
+  { printf '1000 %s\n' "$profile_repeats"; tail -n +2 "$profile_dataset"; } > "$run_dir/profile_input.txt"
   (cd "$run_dir" && "$profile_binary" < profile_input.txt > /dev/null)
   [[ -s "$run_dir/gmon.out" ]] || fail "gprof data missing for ${labels[$i]}"
   gprof -b "$profile_binary" "$run_dir/gmon.out" > "$run_dir/profiles/${profile_name}_gprof.txt"
   rm -f "$run_dir/gmon.out"
 done
 rm -f "$run_dir/profile_input.txt"
-
 plot_file="$run_dir/runtime_comparison.png"
 gnuplot <<GNUPLOT
 set terminal pngcairo size 1200,900 enhanced
