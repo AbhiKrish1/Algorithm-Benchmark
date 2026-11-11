@@ -1,1 +1,9 @@
-# No third-party Python dependencies are required initially.\n
+We need these installed on a Linux, macOS or WSL system:
+- gcc or g++ (with profiling support)
+- gprof
+- gnuplot
+- Python 3.10+
+- Python library: Numpy, Pandas
+ 
+
+ 
