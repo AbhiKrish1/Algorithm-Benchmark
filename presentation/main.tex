@@ -1,25 +1,259 @@
-\documentclass{beamer}
+\documentclass[aspectratio=169,11pt]{beamer}
 \usetheme{Madrid}
-\title{Algorithm Benchmarking and Profiling Suite}
+\usecolortheme{default}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{booktabs,tabularx,amsmath,listings,tikz,graphicx}
+\usetikzlibrary{arrows.meta,positioning}
+\definecolor{navy}{HTML}{142B4A}\definecolor{blue}{HTML}{2463A6}\definecolor{pale}{HTML}{EEF4FA}\definecolor{green}{HTML}{247A58}
+\setbeamercolor{structure}{fg=blue}\setbeamercolor{frametitle}{bg=navy,fg=white}\setbeamercolor{title}{fg=white}\setbeamercolor{block title}{bg=blue,fg=white}\setbeamercolor{block body}{bg=pale,fg=black}
+\setbeamertemplate{navigation symbols}{}
+% Clean presentation chrome: no repeated author/title header or team-name footer.
+\setbeamertemplate{headline}{}
+\setbeamertemplate{footline}{%
+  \leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=\paperwidth,ht=2.6ex,dp=1.1ex,rightskip=1em]{author in head/foot}%
+      \hfill\color{navy}\insertframenumber/\inserttotalframenumber
+    \end{beamercolorbox}%
+  }%
+}
+
+\lstset{basicstyle=\ttfamily\scriptsize,backgroundcolor=\color{pale},frame=single,breaklines=true,showstringspaces=false}
+\title[Algorithm Benchmarking Suite]{Algorithm Benchmarking and Profiling Suite}
+\subtitle{Software Systems Lab Project \;|\; CS202C}
 \author{Project Team}
-\date{\today}
+\institute{Indian Institute of Technology Dharwad\\Faculty: Dr. Suman Dutta}
+\date{November 2026}
 \begin{document}
-\begin{frame}
-  \titlepage
+\begin{frame}[plain]
+\titlepage
+\vspace{-0.4cm}
+\begin{center}
+\small
+Abhinav -- CS25BT028 \quad Jyoteen -- CS25BT064\\
+Shyam -- CS25BT061 \quad Gaurav -- CS25BT024\\
+Harsh -- CS25BT019
+\end{center}
 \end{frame}
-\begin{frame}{Problem and Objectives}
-  \begin{itemize}
-    \item Explain the problem being addressed.
-    \item State the project objectives.
-  \end{itemize}
+\begin{frame}{Why benchmark algorithms?}
+\begin{itemize}
+\item Big-O analysis explains how an algorithm scales as input grows.
+\item Real execution time is also affected by constant factors, memory behaviour, compiler settings and the machine.
+\item A benchmark provides measured evidence; a profiler helps investigate where execution time is spent.
+\end{itemize}
+\begin{block}{Project goal}
+Build a repeatable workflow that compares two selected sorting algorithms on the same generated datasets, measures their CPU time, profiles them separately and plots the results.
+\end{block}
 \end{frame}
-\begin{frame}{Architecture and Methodology}
-  Present the system architecture and benchmarking methodology.
+\begin{frame}{Project objectives and scope}
+\begin{enumerate}
+\item Select two distinct sorting implementations through a command-line interface.
+\item Generate reproducible integer datasets for multiple input sizes.
+\item Compile both algorithms using a shared runner and common flags.
+\item Measure repeated runs and summarize with the median.
+\item Generate separate profiler reports and a runtime comparison graph.
+\end{enumerate}
+\vspace{0.3cm}
+\textbf{Scope note:} The current interactive workflow benchmarks two sorting algorithms per execution. Search and summation source files are present in the repository but are not part of this workflow. A root-level legacy collector is also not invoked; the active collector is `main/collect.py`.
 \end{frame}
-\begin{frame}{Results}
-  Add measured results and graphs.
+\begin{frame}{Algorithms available}
+\begin{columns}[T]
+\column{0.5\textwidth}
+\begin{block}{Elementary comparison sorts}
+\begin{itemize}
+\item Bubble sort
+\item Cocktail Shaker sort
+\item Gnome sort
+\item Insertion sort
+\item Odd--Even Transposition sort
+\item Selection sort
+\end{itemize}
+\end{block}
+\column{0.5\textwidth}
+\begin{block}{Alternative sorting strategies}
+\begin{itemize}
+\item Heap sort — $O(n\log n)$
+\item Merge sort — $O(n\log n)$
+\item Quicksort — average $O(n\log n)$
+\item Radix sort — four byte passes
+\item Shell sort — Ciura gap sequence
+\end{itemize}
+\end{block}
+\end{columns}
+\small The source filenames label some routines as ``unoptimized'' or ``optimized''; this is a project naming convention, not a guaranteed performance ranking.
 \end{frame}
-\begin{frame}{Conclusion}
-  Summarize findings and future work.
+\begin{frame}{System architecture}
+\centering
+\begin{tikzpicture}[node distance=0.5cm and 0.55cm,every node/.style={draw,rounded corners,align=center,minimum height=0.85cm,text width=2.1cm,font=\scriptsize},arr/.style={-{Latex},thick,draw=blue}]
+\node[fill=pale] (cli) {Bash CLI\\choose 2 algorithms};
+\node[fill=pale,right=of cli] (gen) {Python\\dataset generator};
+\node[fill=pale,right=of gen] (gcc) {GCC + shared\\C runner};
+\node[fill=pale,below=of gcc] (collect) {Python collector\\7 samples + median};
+\node[fill=pale,left=of collect] (prof) {gprof\\separate profile run};
+\node[fill=pale,left=of prof] (plot) {GNUplot\\runtime graph};
+\node[fill=blue!12,below=of prof,text width=3cm] (result) {Timestamped results\\data + PNG + profiles};
+\draw[arr](cli)--(gen);\draw[arr](gen)--(gcc);\draw[arr](gcc)--(collect);\draw[arr](collect)--(prof);\draw[arr](prof)--(plot);\draw[arr](collect)|-(result);\draw[arr](prof)--(result);\draw[arr](plot)--(result);
+\end{tikzpicture}
+\vspace{0.25cm}
+\small The Bash script coordinates the complete pipeline and checks that required tools and output files are available.
+\end{frame}
+\begin{frame}{Dataset generation}
+\begin{itemize}
+\item Input sizes: $100,150,200,\ldots,1000$ — 19 datasets.
+\item For each size $n$, seed = $2026+n$.
+\item Generate $n$ integers uniformly through Python's \texttt{randrange(0, 1000000)}.
+\item Values lie in $[0,999999]$; this also satisfies the radix-sort implementation's non-negative-key assumption.
+\item Both selected algorithms receive the same saved dataset for each input size.
+\end{itemize}
+\begin{block}{Why use a fixed seed?}
+It makes the input data reproducible, so a later run can use the same dataset sequence rather than comparing algorithms on unrelated random inputs.
+\end{block}
+\end{frame}
+\begin{frame}[fragile]{Common C interface and runner}
+Every sorting source implements the same function:
+\begin{lstlisting}[language=C]
+void algorithm(const int *input, int *output, int n);
+\end{lstlisting}
+\begin{itemize}
+\item The routine copies input to output, then sorts output in place.
+\item The shared runner reads $n$, repeat count and the input values.
+\item It calls the selected algorithm repeatedly inside the timed region.
+\item It uses C \texttt{clock()} to measure CPU time and prints seconds per sort.
+\item It checks that the final output is in non-decreasing order.
+\end{itemize}
+\end{frame}
+\begin{frame}{Timing methodology}
+The repeat count is adapted to input size:
+\[
+r=\max\left(10,\min\left(2000,\left\lfloor\frac{1,000,000}{n^2}\right\rfloor\right)\right)
+\]
+For each algorithm and each input size:
+\begin{enumerate}
+\item Execute the normal benchmark binary seven times.
+\item Each execution reports CPU seconds per sort, averaged across its internal repeats.
+\item Store the median of the seven samples.
+\end{enumerate}
+\begin{block}{Reported metric}
+Median CPU time per sort (seconds). This is not wall-clock response time.
+\end{block}
+\end{frame}
+\begin{frame}{Compilation and profiling}
+\begin{columns}[T]
+\column{0.52\textwidth}
+\textbf{Normal timing build}
+\begin{block}{Compiler flags}
+\texttt{gcc -std=c11 -O0 -g -Wall -Wextra}
+\end{block}
+\begin{itemize}
+\item Same compiler flags for both algorithms.
+\item Ordinary timing data excludes profiler overhead.
+\end{itemize}
+\column{0.48\textwidth}
+\textbf{Profiling build}
+\begin{block}{Compiler flags}
+\texttt{gcc -std=c11 -O0 -g -pg}
+\end{block}
+\begin{itemize}
+\item Run separately on dataset size 1000.
+\item Default 50 algorithm calls.
+\item gprof report saved for each algorithm.
+\end{itemize}
+\end{columns}
+\end{frame}
+\begin{frame}{Outputs produced by a run}
+\begin{tabularx}{\textwidth}{lX}
+\toprule\textbf{Output} & \textbf{What it contains}\\\midrule
+\texttt{datasets/} & The 19 generated input files.\\
+\texttt{benchmark\_data.dat} & Input size and median seconds per sort for both algorithms.\\
+\texttt{runtime\_comparison.png} & GNUplot line graph; logarithmic y-axis.\\
+\texttt{profiles/} & Separate gprof reports for the selected algorithms.\\
+\texttt{bin/} & Normal and profiling binaries and object files.\\
+\bottomrule
+\end{tabularx}
+\vspace{0.4cm}
+All outputs are saved in a unique timestamped directory under \texttt{results/}.
+\end{frame}
+\begin{frame}{Understanding the graph and profiler}
+\begin{itemize}
+\item X-axis: number of input elements ($n$).
+\item Y-axis: median CPU seconds per sort, displayed on a logarithmic scale.
+\item A steeper increase can indicate less favourable scaling over the tested input range.
+\item gprof provides a separate function-level profile for the size-1000 workload.
+\item Timing and profiling answer different questions; their values should not be mixed.
+\end{itemize}
+\begin{block}{Interpretation rule}
+Observed results are specific to the input distribution, compiler flags, machine and measurement procedure. They do not establish a universal fastest algorithm.
+\end{block}
+\end{frame}
+\begin{frame}{Validation and known limitations}
+\textbf{Implemented checks}
+\begin{itemize}
+\item Required tools, source files and distinct algorithm selections.
+\item Compilation, dataset availability, process exit status and timing output.
+\item Runner checks the final array is non-decreasing.
+\end{itemize}
+\textbf{Limitations to keep in mind}
+\begin{itemize}
+\item Sortedness is checked, but element preservation/permutation is not yet verified.
+\item Only random non-negative data and sizes up to 1000 are used.
+\item Each run compares two algorithms, not all eleven simultaneously.
+\item Results use CPU time and an unoptimized $-O0$ build.
+\end{itemize}
+\end{frame}
+\begin{frame}{Benchmark results: Bubble Sort vs.\ Merge Sort}
+\begin{columns}[T]
+\column{0.64\textwidth}
+\includegraphics[width=\linewidth,height=0.60\textheight,keepaspectratio]{../results/reference_run_20261111/runtime_comparison.png}
+\scriptsize Median CPU time per sort; logarithmic vertical axis.
+\column{0.36\textwidth}
+\textbf{Measured values}
+\begin{tabular}{r|r}
+\textbf{$n$} & \textbf{Bubble / Merge}\\\hline
+100 & 3.60$\times$\\
+500 & 10.10$\times$\\
+1000 & 18.86$\times$
+\end{tabular}
+\vspace{0.25cm}
+\begin{block}{Observation}
+At $n=1000$, Merge Sort was about 18.9 times faster in this reference run.
+\end{block}
+\end{columns}
+\vspace{0.15cm}
+\scriptsize Actual measurements from this report-preparation Linux container; GCC 14.2.0, \texttt{-O0}, 7 samples per size. Values are environment-specific, not a universal ranking.
+\end{frame}
+\begin{frame}[fragile]{How to execute the project}
+From the project root on Linux or WSL:
+\begin{lstlisting}[language=bash]
+sudo apt update
+sudo apt install build-essential binutils gnuplot \\
+  python3 python3-numpy
+chmod +x main/run.sh
+./main/run.sh
+\end{lstlisting}
+Choose two different algorithm numbers when prompted. Or pass two source paths directly:
+\begin{lstlisting}[language=bash]
+./main/run.sh algorithms/dataset/bubble_unoptimized.c \\
+  algorithms/dataset/merge_optimized.c
+\end{lstlisting}
+\end{frame}
+\begin{frame}{Conclusion and future work}
+\begin{block}{Conclusion}
+The project integrates deterministic dataset generation, a reusable C runner, median-based timing, separate gprof profiling and GNUplot visualization into one repeatable pairwise sorting benchmark workflow.
+\end{block}
+\textbf{Next improvements}
+\begin{itemize}
+\item Verify both sorted order and preservation of all input elements.
+\item Add sorted, reverse-sorted, nearly sorted and duplicate-heavy datasets.
+\item Support larger sizes and automated comparisons across all algorithms.
+\item Record machine/compiler metadata and compare optimized builds.
+\end{itemize}
+\end{frame}
+\begin{frame}[plain]
+\centering\vspace{1.3cm}
+{\Huge\color{navy}\bfseries Thank You}\par\vspace{0.5cm}
+{\Large Questions?}\par\vspace{1cm}
+\textbf{Software Systems Lab (CS202C)}\par
+Indian Institute of Technology Dharwad\\Faculty: Dr. Suman Dutta
 \end{frame}
 \end{document}
