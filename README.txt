@@ -1,6 +1,6 @@
 ALGORITHM BENCHMARK
 
-This project compares the running time of different algorithms and plots the comparison as a graph.
+This project compares the running time of different sorting algorithms and plots the comparison as a graph.
 
 HOW IT WORKS
 
@@ -17,7 +17,7 @@ HOW TO RUN
 git clone https://github.com/AbhiKrish1/Algorithm-Benchmark.git
 cd Algorithm-Benchmark
 
--->On Ubuntu or WSL, install the required tools:
+-->On Ubuntu or WSL, install the required tools (Ensure you have NumPy):
 
 sudo apt update
 sudo apt install -y build-essential binutils gnuplot-nox python3
@@ -39,3 +39,7 @@ The results folder contains:
 - The dataset file with input size and time taken for each algorithm.
 - The PNG plot comparing the chosen algorithms.
 - Profiles of the two algorithms so we can compare bottlenecks.
+
+NOTES
+- You can also add to the already existing list of algorithms with your own algorithm by saving it in the same function format as the existing algorithms for it to work perfectly (Kindly refer to function format of existing C algorithms).
+- A sample of 11 algorithms have been already provided.
