@@ -4,7 +4,7 @@ This project compares the running time of different sorting algorithms and plots
 
 HOW IT WORKS
 
-1. Run the run script in the main folder. It asks you to choose which algorithms you want to compare. Open the root directory in Linux terminal, use the commands:./run.sh, give 2 input numbers as prompted. 
+1. Run the run script in the main folder. It asks you to choose which algorithms you want to compare. Open the root directory in Linux terminal, use the commands:./main/run.sh, give 2 input numbers as prompted. 
 2. After you choose, the collect script runs the selected algorithms and uses gprof to measure their running time.
 3. The timing data is saved as a dataset.
 4. Gnuplot reads the dataset and creates a PNG plot.
