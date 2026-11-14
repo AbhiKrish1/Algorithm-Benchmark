@@ -22,13 +22,13 @@
 \lstset{basicstyle=\ttfamily\scriptsize,backgroundcolor=\color{pale},frame=single,breaklines=true,showstringspaces=false}
 \title[Algorithm Benchmarking Suite]{Algorithm Benchmarking and Profiling Suite}
 \subtitle{Software Systems Lab Project \;|\; CS202C}
-\author{Project Team}
-\institute{Indian Institute of Technology Dharwad\\Faculty: Dr. Suman Dutta}
+\institute{\large Indian Institute of Technology Dharwad\\Faculty: Dr. Suman Dutta}
 \date{November 2026}
 \begin{document}
 \begin{frame}[plain]
 \titlepage
 \vspace{-0.4cm}
+\centering \underline{Project Team}
 \begin{center}
 \small
 Abhinav -- CS25BT028 \quad Jyoteen -- CS25BT064\\
@@ -55,7 +55,7 @@ Build a repeatable workflow that compares two selected sorting algorithms on the
 \item Generate separate profiler reports and a runtime comparison graph.
 \end{enumerate}
 \vspace{0.3cm}
-\textbf{Scope note:} The current interactive workflow benchmarks two sorting algorithms per execution. Search and summation source files are present in the repository but are not part of this workflow. A root-level legacy collector is also not invoked; the active collector is `main/collect.py`.
+\textbf{Scope note:} The current interactive workflow benchmarks two sorting algorithms per execution. Search and summation source files are present in the repository but are not part of this workflow.
 \end{frame}
 \begin{frame}{Algorithms available}
 \begin{columns}[T]
@@ -75,6 +75,7 @@ Build a repeatable workflow that compares two selected sorting algorithms on the
 \begin{itemize}
 \item Heap sort — $O(n\log n)$
 \item Merge sort — $O(n\log n)$
+\item Tuned merge sort — profiling-guided variant
 \item Quicksort — average $O(n\log n)$
 \item Radix sort — four byte passes
 \item Shell sort — Ciura gap sequence
@@ -156,7 +157,7 @@ Median CPU time per sort (seconds). This is not wall-clock response time.
 \end{block}
 \begin{itemize}
 \item Run separately on dataset size 1000.
-\item Default 50 algorithm calls.
+\item Runs for about 2 seconds by default (\texttt{ABS\_PROFILE\_SECONDS}).
 \item gprof report saved for each algorithm.
 \end{itemize}
 \end{columns}
@@ -192,12 +193,13 @@ Observed results are specific to the input distribution, compiler flags, machine
 \item Required tools, source files and distinct algorithm selections.
 \item Compilation, dataset availability, process exit status and timing output.
 \item Runner checks the final array is non-decreasing.
+\item \texttt{tests/test.sh}: all 12 implementations compared against \texttt{sort -n} on 9 edge-case inputs.
 \end{itemize}
 \textbf{Limitations to keep in mind}
 \begin{itemize}
 \item The runner checks sortedness only; element preservation is verified separately by \texttt{tests/test.sh}.
 \item Only random non-negative data and sizes up to 1000 are used.
-\item Each run compares two algorithms, not all eleven simultaneously.
+\item Each run compares two algorithms, not all implementations at once.
 \item Results use CPU time and an unoptimized $-O0$ build.
 \end{itemize}
 \end{frame}
@@ -245,14 +247,15 @@ $n$ & Original (s) & Tuned (s) & Speedup\\
 From the project root on Linux or WSL:
 \begin{lstlisting}[language=bash]
 sudo apt update
-sudo apt install build-essential binutils gnuplot \\
+sudo apt install build-essential binutils gnuplot \
   python3 python3-numpy
-chmod +x main/run.sh
+chmod +x main/run.sh tests/test.sh
+bash tests/test.sh
 ./main/run.sh
 \end{lstlisting}
 Choose two different algorithm numbers when prompted. Or pass two source paths directly:
 \begin{lstlisting}[language=bash]
-./main/run.sh algorithms/dataset/bubble_unoptimized.c \\
+./main/run.sh algorithms/dataset/bubble_unoptimized.c \
   algorithms/dataset/merge_optimized.c
 \end{lstlisting}
 \end{frame}
