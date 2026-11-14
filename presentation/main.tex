@@ -195,7 +195,7 @@ Observed results are specific to the input distribution, compiler flags, machine
 \end{itemize}
 \textbf{Limitations to keep in mind}
 \begin{itemize}
-\item Sortedness is checked, but element preservation/permutation is not yet verified.
+\item The runner checks sortedness only; element preservation is verified separately by \texttt{tests/test.sh}.
 \item Only random non-negative data and sizes up to 1000 are used.
 \item Each run compares two algorithms, not all eleven simultaneously.
 \item Results use CPU time and an unoptimized $-O0$ build.
@@ -204,23 +204,42 @@ Observed results are specific to the input distribution, compiler flags, machine
 \begin{frame}{Benchmark results: Bubble Sort vs.\ Merge Sort}
 \begin{columns}[T]
 \column{0.64\textwidth}
-\includegraphics[width=\linewidth,height=0.60\textheight,keepaspectratio]{../results/reference_run_20261111/runtime_comparison.png}
+\includegraphics[width=\linewidth,height=0.60\textheight,keepaspectratio]{../results/reference_run/runtime_comparison.png}
 \scriptsize Median CPU time per sort; logarithmic vertical axis.
 \column{0.36\textwidth}
 \textbf{Measured values}
 \begin{tabular}{r|r}
 \textbf{$n$} & \textbf{Bubble / Merge}\\\hline
-100 & 3.60$\times$\\
-500 & 10.10$\times$\\
-1000 & 18.86$\times$
+100 & 3.47$\times$\\
+500 & 14.17$\times$\\
+1000 & 17.01$\times$
 \end{tabular}
 \vspace{0.25cm}
 \begin{block}{Observation}
-At $n=1000$, Merge Sort was about 18.9 times faster in this reference run.
+At $n=1000$, Merge Sort was about 17.0 times faster in this reference run.
 \end{block}
 \end{columns}
 \vspace{0.15cm}
-\scriptsize Actual measurements from this report-preparation Linux container; GCC 14.2.0, \texttt{-O0}, 7 samples per size. Values are environment-specific, not a universal ranking.
+\scriptsize Measured on the team's machine (Ubuntu 24.04 on WSL, GCC 13.3.0, \texttt{-O0}), 7 samples per size. Values are environment-specific, not a universal ranking.
+\end{frame}
+\begin{frame}{Profiling case study: tuning Merge Sort}
+\begin{itemize}
+\item gprof: \texttt{merge} = 95.4\% of time, 999 calls per sort
+\item Fix 1: insertion sort for blocks of 16 or fewer elements
+\item Fix 2: alternating buffers, no copy-back loop
+\end{itemize}
+\begin{center}
+\begin{tabular}{|r|r|r|r|}
+\hline
+$n$ & Original (s) & Tuned (s) & Speedup\\
+\hline
+100 & $1.04\times10^{-5}$ & $4.51\times10^{-6}$ & 2.30$\times$\\
+500 & $8.98\times10^{-5}$ & $3.32\times10^{-5}$ & 2.70$\times$\\
+1000 & $2.23\times10^{-4}$ & $1.21\times10^{-4}$ & 1.85$\times$\\
+\hline
+\end{tabular}
+\end{center}
+\small \texttt{merge} calls per sort: 999 $\rightarrow$ 63. Measured on the team's machine.
 \end{frame}
 \begin{frame}[fragile]{How to execute the project}
 From the project root on Linux or WSL:
@@ -243,7 +262,7 @@ The project integrates deterministic dataset generation, a reusable C runner, me
 \end{block}
 \textbf{Next improvements}
 \begin{itemize}
-\item Verify both sorted order and preservation of all input elements.
+\item Add a Makefile and a shared library for the algorithms.
 \item Add sorted, reverse-sorted, nearly sorted and duplicate-heavy datasets.
 \item Support larger sizes and automated comparisons across all algorithms.
 \item Record machine/compiler metadata and compare optimized builds.
