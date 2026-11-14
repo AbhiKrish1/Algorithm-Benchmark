@@ -34,3 +34,14 @@ presentation/*.nav
 presentation/*.snm
 presentation/*.toc
 presentation/*.pdf
+results/*/bin/
+report/*.lof
+report/*.lot
+presentation/*.out
+presentation/*.vrb
+*.swp
+results/*/bin/
+report/*.lof
+report/*.lot
+presentation/*.out
+presentation/*.vrb
