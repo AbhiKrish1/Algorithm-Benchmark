@@ -3,6 +3,9 @@
 \usecolortheme{default}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{xcolor}
 \usepackage{booktabs,tabularx,amsmath,listings,tikz,graphicx}
 \usetikzlibrary{arrows.meta,positioning}
 \definecolor{navy}{HTML}{142B4A}\definecolor{blue}{HTML}{2463A6}\definecolor{pale}{HTML}{EEF4FA}\definecolor{green}{HTML}{247A58}
@@ -111,60 +114,22 @@ Build a repeatable workflow that compares two selected sorting algorithms on the
 It makes the input data reproducible, so a later run can use the same dataset sequence rather than comparing algorithms on unrelated random inputs.
 \end{block}
 \end{frame}
-\begin{frame}[fragile]{Common C interface and runner}
+
+\begin{frame}[fragile]{Common C Interface and Benchmark Outputs}
 Every sorting source implements the same function:
+
 \begin{lstlisting}[language=C]
 void algorithm(const int *input, int *output, int n);
 \end{lstlisting}
-\begin{itemize}
-\item The routine copies input to output, then sorts output in place.
-\item The shared runner reads $n$, repeat count and the input values.
-\item It calls the selected algorithm repeatedly inside the timed region.
-\item It uses C \texttt{clock()} to measure CPU time and prints seconds per sort.
-\item It checks that the final output is in non-decreasing order.
-\end{itemize}
-\end{frame}
-\begin{frame}{Timing methodology}
-The repeat count is adapted to input size:
-\[
-r=\max\left(10,\min\left(2000,\left\lfloor\frac{1,000,000}{n^2}\right\rfloor\right)\right)
-\]
-For each algorithm and each input size:
-\begin{enumerate}
-\item Execute the normal benchmark binary seven times.
-\item Each execution reports CPU seconds per sort, averaged across its internal repeats.
-\item Store the median of the seven samples.
-\end{enumerate}
-\begin{block}{Reported metric}
-Median CPU time per sort (seconds). This is not wall-clock response time.
-\end{block}
-\end{frame}
-\begin{frame}{Compilation and profiling}
-\begin{columns}[T]
-\column{0.52\textwidth}
-\textbf{Normal timing build}
-\begin{block}{Compiler flags}
-\texttt{gcc -std=c11 -O0 -g -Wall -Wextra}
-\end{block}
-\begin{itemize}
-\item Same compiler flags for both algorithms.
-\item Ordinary timing data excludes profiler overhead.
-\end{itemize}
-\column{0.48\textwidth}
-\textbf{Profiling build}
-\begin{block}{Compiler flags}
-\texttt{gcc -std=c11 -O0 -g -pg}
-\end{block}
-\begin{itemize}
-\item Run separately on dataset size 1000.
-\item Runs for about 2 seconds by default (\texttt{ABS\_PROFILE\_SECONDS}).
-\item gprof report saved for each algorithm.
-\end{itemize}
-\end{columns}
-\end{frame}
-\begin{frame}{Outputs produced by a run}
+
+\vspace{0.3cm}
+
+\textbf{Outputs Produced by a Run}
+
 \begin{tabularx}{\textwidth}{lX}
-\toprule\textbf{Output} & \textbf{What it contains}\\\midrule
+\toprule
+\textbf{Output} & \textbf{What it contains}\\
+\midrule
 \texttt{datasets/} & The 19 generated input files.\\
 \texttt{benchmark\_data.dat} & Input size and median seconds per sort for both algorithms.\\
 \texttt{runtime\_comparison.png} & GNUplot line graph; logarithmic y-axis.\\
@@ -172,42 +137,19 @@ Median CPU time per sort (seconds). This is not wall-clock response time.
 \texttt{bin/} & Normal and profiling binaries and object files.\\
 \bottomrule
 \end{tabularx}
-\vspace{0.4cm}
-All outputs are saved in a unique timestamped directory under \texttt{results/}.
+
+\vspace{0.3cm}
+
+All outputs are saved in a unique timestamped directory under
+\texttt{results/}.
+
 \end{frame}
-\begin{frame}{Understanding the graph and profiler}
-\begin{itemize}
-\item X-axis: number of input elements ($n$).
-\item Y-axis: median CPU seconds per sort, displayed on a logarithmic scale.
-\item A steeper increase can indicate less favourable scaling over the tested input range.
-\item gprof provides a separate function-level profile for the size-1000 workload.
-\item Timing and profiling answer different questions; their values should not be mixed.
-\end{itemize}
-\begin{block}{Interpretation rule}
-Observed results are specific to the input distribution, compiler flags, machine and measurement procedure. They do not establish a universal fastest algorithm.
-\end{block}
-\end{frame}
-\begin{frame}{Validation and known limitations}
-\textbf{Implemented checks}
-\begin{itemize}
-\item Required tools, source files and distinct algorithm selections.
-\item Compilation, dataset availability, process exit status and timing output.
-\item Runner checks the final array is non-decreasing.
-\item \texttt{tests/test.sh}: all 12 implementations compared against \texttt{sort -n} on 9 edge-case inputs.
-\end{itemize}
-\textbf{Limitations to keep in mind}
-\begin{itemize}
-\item The runner checks sortedness only; element preservation is verified separately by \texttt{tests/test.sh}.
-\item Only random non-negative data and sizes up to 1000 are used.
-\item Each run compares two algorithms, not all implementations at once.
-\item Results use CPU time and an unoptimized $-O0$ build.
-\end{itemize}
-\end{frame}
+
 \begin{frame}{Benchmark results: Bubble Sort vs.\ Merge Sort}
 \begin{columns}[T]
 \column{0.64\textwidth}
-\includegraphics[width=\linewidth,height=0.60\textheight,keepaspectratio]{../results/reference_run/runtime_comparison.png}
-\scriptsize Median CPU time per sort; logarithmic vertical axis.
+\includegraphics[width=\linewidth,height=0.60\textheight,keepaspectratio]{runtime_comparison.png}
+
 \column{0.36\textwidth}
 \textbf{Measured values}
 \begin{tabular}{r|r}
@@ -221,8 +163,6 @@ Observed results are specific to the input distribution, compiler flags, machine
 At $n=1000$, Merge Sort was about 17.0 times faster in this reference run.
 \end{block}
 \end{columns}
-\vspace{0.15cm}
-\scriptsize Measured on the team's machine (Ubuntu 24.04 on WSL, GCC 13.3.0, \texttt{-O0}), 7 samples per size. Values are environment-specific, not a universal ranking.
 \end{frame}
 \begin{frame}{Profiling case study: tuning Merge Sort}
 \begin{itemize}
@@ -259,22 +199,210 @@ Choose two different algorithm numbers when prompted. Or pass two source paths d
   algorithms/dataset/merge_optimized.c
 \end{lstlisting}
 \end{frame}
-\begin{frame}{Conclusion and future work}
+
+
+% =================================================
+% TEAM MEMBERS AND ROLES
+% =================================================
+
+\begin{frame}{Team Member's Roles}
+
+\begin{columns}[T,onlytextwidth]
+
+% ABHINAV
+\begin{column}{0.19\textwidth}
+\begin{beamercolorbox}[
+  wd=\linewidth,
+  ht=4.65cm,
+  dp=0cm,
+  center,
+  sep=0.08cm
+]{block body}
+\vbox to 4.45cm{
+\centering
+\vspace{0.05cm}
+
+\begin{tikzpicture}
+\node[circle,fill=blue!75!black,
+minimum size=0.85cm,text=white,
+font=\large\bfseries] {A};
+\end{tikzpicture}
+
+\vspace{0.15cm}
+{\bfseries Abhinav}
+
+\vspace{0.08cm}
+{\scriptsize CS25BT028}
+
+\vspace{0.25cm}
+\parbox[t][1.65cm][t]{\linewidth}{
+\centering\scriptsize
+Bash automation, Dataset generation,
+GNUplot, Folder Structure
+}
+\vfill
+}
+\end{beamercolorbox}
+\end{column}
+
+
+% JYOTEEN
+\begin{column}{0.19\textwidth}
+\begin{beamercolorbox}[
+  wd=\linewidth,
+  ht=4.65cm,
+  dp=0cm,
+  center,
+  sep=0.08cm
+]{block body}
+\vbox to 4.45cm{
+\centering
+\vspace{0.05cm}
+
+\begin{tikzpicture}
+\node[circle,fill=teal!85!black,
+minimum size=0.85cm,text=white,
+font=\large\bfseries] {J};
+\end{tikzpicture}
+
+\vspace{0.15cm}
+{\bfseries Jyoteen}
+
+\vspace{0.08cm}
+{\scriptsize CS25BT064}
+
+\vspace{0.25cm}
+\parbox[t][1.65cm][t]{\linewidth}{
+\centering\scriptsize
+Benchmarking both programs across dataset sizes}
+\vfill
+}
+\end{beamercolorbox}
+\end{column}
+
+
+% SHYAM
+\begin{column}{0.19\textwidth}
+\begin{beamercolorbox}[
+  wd=\linewidth,
+  ht=4.65cm,
+  dp=0cm,
+  center,
+  sep=0.08cm
+]{block body}
+\vbox to 4.45cm{
+\centering
+\vspace{0.05cm}
+
+\begin{tikzpicture}
+\node[circle,fill=orange!90!yellow,
+minimum size=0.85cm,text=white,
+font=\large\bfseries] {S};
+\end{tikzpicture}
+
+\vspace{0.15cm}
+{\bfseries Shyam}
+
+\vspace{0.08cm}
+{\scriptsize CS25BT061}
+
+\vspace{0.25cm}
+\parbox[t][1.65cm][t]{\linewidth}{
+\centering\scriptsize
+README.md and
+\texttt{requirements.txt}
+}
+\vfill
+}
+\end{beamercolorbox}
+\end{column}
+
+
+% GAURAV
+\begin{column}{0.19\textwidth}
+\begin{beamercolorbox}[
+  wd=\linewidth,
+  ht=4.65cm,
+  dp=0cm,
+  center,
+  sep=0.08cm
+]{block body}
+\vbox to 4.45cm{
+\centering
+\vspace{0.05cm}
+
+\begin{tikzpicture}
+\node[circle,fill=red!75,
+minimum size=0.85cm,text=white,
+font=\large\bfseries] {G};
+\end{tikzpicture}
+
+\vspace{0.15cm}
+{\bfseries Gaurav}
+
+\vspace{0.08cm}
+{\scriptsize CS25BT024}
+
+\vspace{0.25cm}
+\parbox[t][1.65cm][t]{\linewidth}{
+\centering\scriptsize
+LaTeX report, Beamer presentation,
+Folder Structure
+}
+\vfill
+}
+\end{beamercolorbox}
+\end{column}
+
+
+% HARSH
+\begin{column}{0.19\textwidth}
+\begin{beamercolorbox}[
+  wd=\linewidth,
+  ht=4.65cm,
+  dp=0cm,
+  center,
+  sep=0.08cm
+]{block body}
+\vbox to 4.45cm{
+\centering
+\vspace{0.05cm}
+
+\begin{tikzpicture}
+\node[circle,fill=gray!75!navy,
+minimum size=0.85cm,text=white,
+font=\large\bfseries] {H};
+\end{tikzpicture}
+
+\vspace{0.15cm}
+{\bfseries Harsh}
+
+\vspace{0.08cm}
+{\scriptsize CS25BT019}
+
+\vspace{0.25cm}
+\parbox[t][1.65cm][t]{\linewidth}{
+\centering\scriptsize
+Test cases, Results,
+Profiling tools, Documentation
+}
+\vfill
+}
+\end{beamercolorbox}
+\end{column}
+
+\end{columns}
+
+\end{frame}
+
+
+\begin{frame}{Conclusion}
 \begin{block}{Conclusion}
 The project integrates deterministic dataset generation, a reusable C runner, median-based timing, separate gprof profiling and GNUplot visualization into one repeatable pairwise sorting benchmark workflow.
 \end{block}
-\textbf{Next improvements}
-\begin{itemize}
-\item Add a Makefile and a shared library for the algorithms.
-\item Add sorted, reverse-sorted, nearly sorted and duplicate-heavy datasets.
-\item Support larger sizes and automated comparisons across all algorithms.
-\item Record machine/compiler metadata and compare optimized builds.
-\end{itemize}
-\end{frame}
-\begin{frame}[plain]
-\centering\vspace{1.3cm}
-{\Huge\color{navy}\bfseries Thank You}\par\vspace{0.5cm}
-{\Large Questions?}\par\vspace{1cm}
+\centering\vspace{1cm}
+{\Huge\color{navy}\bfseries \underline {Thank You}}\par\vspace{0.5cm}
+{\Large Questions?}\par\vspace{0.5cm}
 \textbf{Software Systems Lab (CS202C)}\par
 Indian Institute of Technology Dharwad\\Faculty: Dr. Suman Dutta
 \end{frame}
