@@ -54,3 +54,15 @@ Topic:	Where it is used
 5) GNUplot: Runtime comparison plots 
 6) Git:	Collaboration across five team members, with commit history
 7) LaTeX: The project report and the Beamer presentation
+
+
+AI Usage Declaration
+
+We used AI tools to assist with this project. Below we state where, and what our team did with the output.
+
+Automation: AI generated drafts of main/run.sh, main/collect.py and main/generate_datasets.py which we tested.
+Sorting algorithms: AI supplied sample implementations of most of the sorting algorithms in order to maintain the particular format which our runner would recognize.. We tested each of them to verify the claim of being optimized or unoptimized.
+Tests: AI helped draft the test scripts (tests/test.sh, tests/harness.c). Our team ran and checked them against sort -n.
+Report: AI helped generate most of the report which we later reviewed and corrected. We performed all measurements and profiling results and images came from our own runs on our machine.
+Profiling and tuning: The idea for the insertion-sort cutoff and alternating buffers came from AI although we did the measurements.
+AI also helped to review this project.
