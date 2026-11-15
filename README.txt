@@ -42,4 +42,15 @@ The results folder contains:
 
 NOTES
 - You can also add to the already existing list of algorithms with your own algorithm by saving it in the same function format as the existing algorithms for it to work perfectly (Kindly refer to function format of existing C algorithms).
-- A sample of 11 algorithms have been already provided.
+- A sample of 12 algorithms have been already provided.
+
+Topics Covered
+
+Topic:	Where it is used
+1) C programming: The sorting algorithms and the shared runner (algorithms/dataset/)
+2) Python: Dataset generation and repeated measurement (main/generate_datasets.py, main/collect.py)
+3) Bash: Command Line Automation of the whole project (main/run.sh) and the test script (tests/test.sh)
+4) gprof: Profiling the selected algorithms. 
+5) GNUplot: Runtime comparison plots 
+6) Git:	Collaboration across five team members, with commit history
+7) LaTeX: The project report and the Beamer presentation
