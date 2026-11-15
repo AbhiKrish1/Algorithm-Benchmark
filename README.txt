@@ -1,6 +1,6 @@
 ALGORITHM BENCHMARK
 
-This project compares the running time of different sorting algorithms and plots the comparison as a graph.
+This project compares the runtime of different sorting algorithms and plots the comparison as a graph.
 
 HOW IT WORKS
 
