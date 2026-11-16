@@ -15,7 +15,7 @@ HOW TO RUN
 1. Go into the project folder. Clone the repository and enter its directory:
 
 git clone https://github.com/AbhiKrish1/Algorithm-Benchmark.git
-cd Algorithm-Benchmark
+cd Algorithm-Benchmark-main
 
 -->On Ubuntu or WSL, install the required tools (Ensure you have NumPy):
 
